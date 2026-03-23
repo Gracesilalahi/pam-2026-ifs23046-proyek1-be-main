@@ -1,0 +1,30 @@
+POST http://127.0.0.1:8000/auth/login
+Content-Type: application/json
+
+{
+  "username": "helga23047",
+  "password": "password123"
+}
+
+> {%
+    client.global.set("authToken", response.body.data.authToken);
+%}
+
+###
+
+POST http://127.0.0.1:8000/auth/logout
+Content-Type: application/json
+
+{
+  "authToken": "{{authToken}}"
+}
+
+> {%
+    client.global.set("authToken", null);
+%}
+
+###
+
+GET http://127.0.0.1:8000/auth/me
+Authorization: Bearer {{authToken}}
+Content-Type: application/json

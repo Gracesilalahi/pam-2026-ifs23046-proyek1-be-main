@@ -1,0 +1,195 @@
+## Global Variabel
+@BaseUrl = https://pam-2026-ifs23046-proyek1-be.s1if.life:8080/
+#@BaseUrl = http://127.0.0.1:8000
+
+-----------------
+### Auth Section
+### ---------------------------------------
+
+### 1. Register
+# @name PostRegister
+POST {{BaseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Grace Sania",
+  "username": "ifs23046",
+  "password": "12345"
+}
+
+### ---------------------------------------
+
+### 2. Login (WAJIB JALANKAN INI DULU)
+# @name PostLogin
+POST {{BaseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "ifs23046",
+  "password": "12345"
+}
+
+> {%
+    client.global.set("authToken", response.body.data.authToken);
+    client.global.set("refreshToken", response.body.data.refreshToken);
+%}
+
+### ---------------------------------------
+
+### 3. Logout (Pusat Masalah Tadi)
+# @name PostLogout
+POST {{BaseUrl}}/auth/logout
+Content-Type: application/json
+
+{
+  "authToken": "{{authToken}}"
+}
+
+> {%
+    client.global.set("authToken", null);
+    client.global.set("refreshToken", null);
+%}
+
+### ---------------------------------------
+
+### 4. Tes Get User
+# @name GetUserMe
+GET {{BaseUrl}}/users/me
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+> {%
+    client.global.set("userId", response.body.data.user.id);
+%}
+
+### ---------------------------------------
+
+### Mengubah informasi akun
+# @name PutUserMe
+PUT {{BaseUrl}}/users/me
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Grace",
+  "username": "grace"
+}
+
+### ---------------------------------------
+
+### Mengubah kata sandi akun
+# @name PutUserMePassword
+PUT {{BaseUrl}}/users/me/password
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "newPassword": "password_baru3",
+  "password": "passwordtester3"
+}
+
+### ---------------------------------------
+
+### Mengubah photo profile user
+# @name PutUserMePhoto
+PUT {{BaseUrl}}/users/me/photo
+Authorization: Bearer {{authToken}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="profile.png"
+Content-Type: image/png
+
+< ./uploads/examples/me.png
+--WebAppBoundary--
+
+### ---------------------------------------
+
+### Mengambil data photo profile berdasarkan id-nya
+# @name GetUserPhotoById
+GET {{BaseUrl}}/images/users/{{userId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+### ---------------------------------------
+### Digital Wardrobe Section (Clothing)
+### ---------------------------------------
+
+### Mengambil semua pakaian (Mendukung Search & Filter)
+# @name GetClothing
+GET {{BaseUrl}}/clothing?search=Batik&category=Atasan&color=Hitam
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+### ---------------------------------------
+
+### Menambahkan pakaian baru ke lemari
+# @name PostClothing
+POST {{BaseUrl}}/clothing
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Kemeja Flanel Biru",
+  "category": "Atasan",
+  "color": "Biru",
+  "description": "Kemeja flanel tebal untuk cuaca dingin"
+}
+
+> {%
+    client.global.set("clothingId", response.body.data.id);
+%}
+
+### ---------------------------------------
+
+### Mengambil detail pakaian berdasarkan ID
+# @name GetClothingById
+GET {{BaseUrl}}/clothing/{{clothingId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+### ---------------------------------------
+
+### Mengubah data pakaian (Update info)
+# @name PutClothing
+PUT {{BaseUrl}}/clothing/{{clothingId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Kemeja Flanel Biru Update",
+  "category": "Atasan",
+  "color": "Biru Tua",
+  "description": "Deskripsi yang sudah diperbarui"
+}
+
+### ---------------------------------------
+
+### Mengunggah/Mengubah foto pakaian
+# @name PutClothingPhoto
+PUT {{BaseUrl}}/clothing/{{clothingId}}/photo
+Authorization: Bearer {{authToken}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="baju.png"
+Content-Type: image/png
+
+< ./uploads/examples/baju.png
+--WebAppBoundary--
+
+### ---------------------------------------
+
+### Mengambil file gambar pakaian untuk UI
+# @name GetClothingPhoto
+GET {{BaseUrl}}/images/clothing/{{clothingId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+### ---------------------------------------
+
+### Menghapus pakaian dari lemari
+# @name DeleteClothing
+DELETE {{BaseUrl}}/clothing/{{clothingId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
