@@ -13,8 +13,8 @@ Content-Type: application/json
 
 {
   "name": "Grace Sania",
-  "username": "gracie",
-  "password": "12345"
+  "username": "beauty",
+  "password": "1234"
 }
 
 ### ---------------------------------------
@@ -25,8 +25,8 @@ POST {{BaseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "username": "gracie",
-  "password": "12345"
+  "username": "beauty",
+  "password": "1234"
 }
 
 > {%
@@ -72,7 +72,7 @@ Content-Type: application/json
 
 {
   "name": "Grace",
-  "username": "gracie"
+  "username": "beauty"
 }
 
 ### ---------------------------------------
@@ -84,7 +84,7 @@ Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
-  "password": "12345",
+  "password": "1234",
   "newPassword": "54321"
 }
 
