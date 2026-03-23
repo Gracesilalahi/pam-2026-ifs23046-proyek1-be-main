@@ -1,4 +1,6 @@
+[providers.java]
+jdk = "21"
+
 [variables]
 NIXPACKS_JDK_VERSION = "21"
 JAVA_VERSION = "21"
-BP_JVM_VERSION = "21"
