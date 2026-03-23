@@ -3,10 +3,10 @@ ktor:
     modules:
       - org.delcom.ApplicationKt.module
   deployment:
-    # Gunakan PORT dari server, kalau gak ada cari APP_PORT, kalau gak ada baru pakai 8000
-    port: ${PORT:-${APP_PORT:-8000}}
-    # Gunakan HOST dari server, kalau gak ada default ke 0.0.0.0 (ini paling aman buat deploy)
-    host: ${APP_HOST:-0.0.0.0}
+    # Ktor cuma perlu baca satu variabel bersih bernama PORT
+    port: ${PORT}
+    # WAJIB 0.0.0.0 agar Nginx bisa masuk
+    host: 0.0.0.0
 
   database:
     host: ${DB_HOST}
