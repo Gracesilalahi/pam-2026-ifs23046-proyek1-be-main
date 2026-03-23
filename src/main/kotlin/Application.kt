@@ -26,25 +26,21 @@ fun main(args: Array<String>) {
         ignoreIfMissing = true
     }
 
-    // 1. Masukkan isi .env ke System Property
     dotenv.entries().forEach { entry ->
         if (System.getenv(entry.key) == null) {
             System.setProperty(entry.key, entry.value)
         }
     }
 
-    // 2. JURUS ANTI-502: Tentukan Port secara Manual
-    // Ambil PORT (jatah Delcom), kalau kosong ambil APP_PORT (.env), kalau kosong pakai 8000
-    val resolvedPort = System.getenv("PORT")
-        ?: System.getProperty("APP_PORT")
-        ?: "8000"
-
-    // Set ke System Property "PORT" agar dibaca application.yaml
+    // PAKSA PORT BARU: Ganti 8000 jadi 8081 biar gak tabrakan sama yang lama
+    val resolvedPort = System.getenv("PORT") ?: "8081"
     System.setProperty("PORT", resolvedPort)
 
-    println("🚀 APLIKASI MENCOBA JALAN DI PORT: $resolvedPort")
+    println("🚀 GRACE, KTOR MENCOBA JALAN DI: 0.0.0.0:$resolvedPort")
 
-    io.ktor.server.netty.EngineMain.main(args)
+    // Paksa masuk ke argument
+    val forcedArgs = args + arrayOf("-port=$resolvedPort", "-host=0.0.0.0")
+    io.ktor.server.netty.EngineMain.main(forcedArgs)
 }
 
 fun Application.module() {
