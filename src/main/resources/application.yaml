@@ -2,21 +2,3 @@ ktor:
   application:
     modules:
       - org.delcom.ApplicationKt.module
-  deployment:
-    # Ktor hanya perlu baca satu variabel bersih bernama PORT
-    port: ${PORT}
-    # WAJIB 0.0.0.0 agar Nginx bisa meneruskan tamu ke Ktor
-    host: 0.0.0.0
-
-  database:
-    host: ${DB_HOST}
-    port: ${DB_PORT}
-    name: ${DB_NAME}
-    user: ${DB_USER}
-    password: ${DB_PASSWORD}
-
-  jwt:
-    secret: "${JWT_SECRET}"
-
-  app:
-    baseUrl: ${APP_URL}
