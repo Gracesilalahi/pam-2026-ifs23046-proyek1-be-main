@@ -23,33 +23,29 @@ import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
 
 fun main(args: Array<String>) {
-    // 1. Load .env (untuk lokal). Di server Delcom ini akan di-ignore.
     val dotenv = dotenv {
         directory = "."
         ignoreIfMissing = true
     }
 
-    // 2. Masukkan semua isi .env ke System Property agar bisa dibaca kode lain
     dotenv.entries().forEach { entry ->
         if (System.getenv(entry.key) == null) {
             System.setProperty(entry.key, entry.value)
         }
     }
 
-    // 3. Ambil PORT dari Delcom (Sangat krusial untuk menghindari 502)
-    val portEnv = System.getenv("PORT") ?: System.getProperty("APP_PORT") ?: "30700"
+    // Ambil port dari environment (Default 30703 sesuai log kamu tadi)
+    val portEnv = System.getenv("PORT") ?: System.getProperty("APP_PORT") ?: "30703"
     val resolvedPort = portEnv.toInt()
 
     println("🚀 GRACE, KTOR BERHASIL NYALA DI PORT: $resolvedPort")
 
-    // 4. Jalankan Server Netty secara paksa di 0.0.0.0
     embeddedServer(Netty, port = resolvedPort, host = "0.0.0.0") {
         module()
     }.start(wait = true)
 }
 
 fun Application.module() {
-    // 5. AMBIL DATA SETTING (Database, JWT, BaseUrl)
     val jwtSecret = System.getProperty("JWT_SECRET") ?: System.getenv("JWT_SECRET") ?: "rahasia_grace_123"
     val baseUrl = System.getProperty("APP_URL") ?: System.getenv("APP_URL") ?: "http://localhost:8080"
 
@@ -59,7 +55,6 @@ fun Application.module() {
     val dbUser = System.getProperty("DB_USER") ?: System.getenv("DB_USER") ?: ""
     val dbPass = System.getProperty("DB_PASSWORD") ?: System.getenv("DB_PASSWORD") ?: ""
 
-    // 6. INJEKSI MANUAL: Biar helper/Koin tidak error 'Property not found'
     (environment.config as? MapApplicationConfig)?.apply {
         put("ktor.jwt.secret", jwtSecret)
         put("ktor.app.baseUrl", baseUrl)
@@ -70,7 +65,6 @@ fun Application.module() {
         put("ktor.database.password", dbPass)
     }
 
-    // Konfigurasi JWT
     install(Authentication) {
         jwt(JWTConstants.NAME) {
             realm = JWTConstants.REALM
@@ -90,7 +84,6 @@ fun Application.module() {
         }
     }
 
-    // Konfigurasi CORS
     install(CORS) {
         anyHost()
         allowMethod(HttpMethod.Options)
@@ -101,18 +94,22 @@ fun Application.module() {
         allowCredentials = true
     }
 
-    // Konfigurasi JSON
+    // KONFIGURASI JSON (Kunci perbaikan error 500)
     install(ContentNegotiation) {
-        json(Json { explicitNulls = false; prettyPrint = true; ignoreUnknownKeys = true })
+        json(Json {
+            explicitNulls = false
+            prettyPrint = true
+            ignoreUnknownKeys = true
+            isLenient = true
+            encodeDefaults = true
+        })
     }
 
-    // Konfigurasi Koin
     install(Koin) {
         slf4jLogger()
         modules(appModule(this@module))
     }
 
-    // Panggil Helper
     configureDatabases()
     configureStaticFiles()
     configureRouting()

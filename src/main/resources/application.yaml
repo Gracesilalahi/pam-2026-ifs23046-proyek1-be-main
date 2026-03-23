@@ -1,4 +1,3 @@
+# Kosongkan bagian modules karena sudah dipanggil manual di Application.kt
 ktor:
-  application:
-    modules:
-      - org.delcom.ApplicationKt.module
+  development: true

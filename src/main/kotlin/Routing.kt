@@ -1,11 +1,12 @@
 package org.delcom
 
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.authenticate
-import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.auth.*
+import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.request.*
 import org.delcom.data.AppException
 import org.delcom.data.ErrorResponse
 import org.delcom.helpers.JWTConstants
@@ -25,28 +26,42 @@ fun Application.configureRouting() {
     val userService: UserService by inject()
 
     install(StatusPages) {
-        // Tangkap AppException untuk validasi data atau error bisnis
+        // 1. Tangkap AppException (Error bisnis/validasi)
         exception<AppException> { call, cause ->
             val dataMap: Map<String, List<String>> = parseMessageToMap(cause.message)
-
             call.respond(
                 status = HttpStatusCode.fromValue(cause.code),
                 message = ErrorResponse(
                     status = "fail",
                     message = if (dataMap.isEmpty()) cause.message else "Data yang dikirimkan tidak valid!",
-                    // PERBAIKAN: Kirim dataMap langsung (sebagai objek JSON), jangan pakai .toString()
                     data = if (dataMap.isEmpty()) null else dataMap
                 )
             )
         }
 
-        // Tangkap semua Throwable lainnya (Error sistem 500)
+        // 2. KUNCI PERBAIKAN: Tangkap error transformasi JSON (PENTING!)
+        // Ini akan menangkap jika Content-Type salah atau JSON tidak bisa di-parse
+        exception<ContentTransformationException> { call, cause ->
+            call.respond(
+                status = HttpStatusCode.UnsupportedMediaType,
+                message = ErrorResponse(
+                    status = "error",
+                    message = "Server tidak mendukung format data ini atau JSON rusak: ${cause.message}",
+                    data = null
+                )
+            )
+        }
+
+        // 3. Tangkap semua error sistem lainnya (Error 500)
         exception<Throwable> { call, cause ->
+            // Print error ke console server agar bisa dibaca di Log Delcom
+            call.application.environment.log.error("🔴 CRITICAL ERROR: ${cause.message}", cause)
+
             call.respond(
                 status = HttpStatusCode.InternalServerError,
                 message = ErrorResponse(
                     status = "error",
-                    message = cause.message ?: "Terjadi kesalahan pada server",
+                    message = cause.message ?: "Terjadi kesalahan pada server internal",
                     data = null
                 )
             )
@@ -55,7 +70,6 @@ fun Application.configureRouting() {
 
     routing {
         get("/") {
-            // Update identitas sesuai info user
             call.respondText("API Digital Wardrobe Berjalan. Dibuat oleh Grace Sania Silalahi - ifs23046.")
         }
 
@@ -79,19 +93,23 @@ fun Application.configureRouting() {
 
             // Route Digital Wardrobe (CRUD Pakaian)
             route("/clothing") {
-                get { clothingService.getAll(call) }        // Mendukung Filter & Search
-                post { clothingService.post(call) }       // Tambah Pakaian
+                get { clothingService.getAll(call) }
+
+                // Tambah Pakaian (Pastikan Service sudah pakai call.receive<ClothingRequest>())
+                post {
+                    clothingService.post(call)
+                }
 
                 route("/{id}") {
-                    get { clothingService.getById(call) }   // Detail Pakaian
-                    put { clothingService.put(call) }       // Update Data
-                    put("/photo") { clothingService.putPhoto(call) } // Upload Foto
-                    delete { clothingService.delete(call) } // Hapus Pakaian
+                    get { clothingService.getById(call) }
+                    put { clothingService.put(call) }
+                    put("/photo") { clothingService.putPhoto(call) }
+                    delete { clothingService.delete(call) }
                 }
             }
         }
 
-        // --- 3. Route Gambar (Public agar bisa dibaca Coil di Android) ---
+        // --- 3. Route Gambar ---
         route("/images") {
             get("users/{id}") { userService.getPhoto(call) }
             get("clothing/{id}") { clothingService.getPhoto(call) }

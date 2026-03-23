@@ -13,7 +13,7 @@ Content-Type: application/json
 
 {
   "name": "Grace Sania",
-  "username": "ifs23046",
+  "username": "gracie",
   "password": "12345"
 }
 
@@ -25,7 +25,7 @@ POST {{BaseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "username": "ifs23046",
+  "username": "gracie",
   "password": "12345"
 }
 
@@ -72,7 +72,7 @@ Content-Type: application/json
 
 {
   "name": "Grace",
-  "username": "grace"
+  "username": "gracie"
 }
 
 ### ---------------------------------------
@@ -84,8 +84,8 @@ Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
-  "newPassword": "password_baru3",
-  "password": "passwordtester3"
+  "password": "12345",
+  "newPassword": "54321"
 }
 
 ### ---------------------------------------
